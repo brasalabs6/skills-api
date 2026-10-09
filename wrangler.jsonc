@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "skills-api-dev",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-10-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [{"binding": "DB", "database_name": "skills-registry-dev", "database_id": "REPLACE_WITH_D1_DATABASE_ID", "migrations_dir": "migrations"}],
+  "r2_buckets": [{"binding": "ASSETS", "bucket_name": "skills-registry-assets-dev"}],
+  "ai": {"binding": "AI"},
+  "queues": {
+    "producers": [{"binding": "EVENT_QUEUE", "queue": "skills-registry-events-dev"}],
+    "consumers": [{"queue": "skills-registry-events-dev", "max_batch_size": 10, "max_retries": 5, "dead_letter_queue": "skills-registry-dlq-dev"}]
+  },
+  "triggers": {"crons": ["* * * * *"]},
+  "vars": {"APP_ENV": "development", "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast", "BOOTSTRAP_ADMIN_EMAIL": ""}
+}
