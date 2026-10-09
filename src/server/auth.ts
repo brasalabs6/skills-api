@@ -17,7 +17,7 @@ async function getIdentity(c:Context<Vars>):Promise<{sub:string;email:string}|nu
   const token=c.req.header("cf-access-jwt-assertion")||cookie;
   if(token && env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD){
     const issuer=env.ACCESS_TEAM_DOMAIN.replace(/\/$/,"");
-    const verified=await jwtVerify(token,getJWKS(issuer),{issuer:issuer+"/",audience:env.ACCESS_AUD});
+    const verified=await jwtVerify(token,getJWKS(issuer),{issuer:issuer,audience:env.ACCESS_AUD});
     const sub=String(verified.payload.sub??"");
     const email=String(verified.payload.email??"").toLowerCase();
     if(sub && email)return {sub,email};
@@ -49,7 +49,7 @@ export const authenticate:MiddlewareHandler<Vars>=async(c,next)=>{
   if(authorization?.startsWith("Bearer reg_")){
     const token=authorization.slice(7);
     const hashed=await sha256(token);
-    const row=await c.env.DB.prepare("SELECT t.*,w.organization_id FROM service_tokens t JOIN workspaces w ON w.id=t.workspace_id WHERE t.token_hash=? AND t.revoked_at IS NULL AND (t.expires_at IS NULL OR t.expires_at>CURRENT_TIMESTAMP)").bind(hashed).first<any>();
+    const row=await c.env.DB.prepare("SELECT t.*,w.organization_id FROM service_tokens t JOIN workspaces w ON w.id=t.workspace_id WHERE t.token_hash=? AND t.revoked_at IS NULL AND (t.expires_at IS NULL OR datetime(t.expires_at)>CURRENT_TIMESTAMP)").bind(hashed).first<any>();
     if(row)principal={kind:"service",id:row.id,workspace_id:row.workspace_id,organization_id:row.organization_id,role:"service",scopes:parse(row.scopes_json,[])};
   } else {
     let identity=null;
