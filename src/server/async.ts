@@ -6,6 +6,10 @@ const sign = async (secret:string,body:string):Promise<string>=>{
   return Array.from(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(body))),b=>b.toString(16).padStart(2,"0")).join("");
 };
 export async function sweep(env:Env):Promise<void>{
+  // Queue consumers can crash after acquiring a delivery lease.
+  // Restore timed-out leases so the next cron tick retries delivery.
+  await env.DB.prepare("UPDATE webhook_deliveries SET status='pending',leased_until=NULL,next_attempt_at=CURRENT_TIMESTAMP WHERE status='processing' AND leased_until<=CURRENT_TIMESTAMP").run();
+
   const events=await env.DB.prepare("SELECT * FROM event_outbox WHERE status='pending' AND next_attempt_at<=CURRENT_TIMESTAMP LIMIT 30").all<any>();
   for(const event of events.results){
     const endpoints=await env.DB.prepare("SELECT id FROM webhook_endpoints WHERE workspace_id=? AND enabled=1 AND EXISTS (SELECT 1 FROM json_each(events_json) WHERE value=?)").bind(event.workspace_id,event.event_type).all<{id:string}>();
