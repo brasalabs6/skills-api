@@ -46,7 +46,6 @@
   },
   "vars": {
     "APP_ENV": "development",
-    "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
-    "BOOTSTRAP_ADMIN_EMAIL": ""
+    "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast"
   }
 }
