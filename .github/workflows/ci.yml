@@ -16,5 +16,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Verify domain invariants (SQLite)
+        run: python3 tests/sqlite_schema_smoke.py
       - name: Validate D1 migrations locally
         run: npx wrangler d1 migrations apply DB --local
