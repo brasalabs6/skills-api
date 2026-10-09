@@ -29,7 +29,13 @@ must_fail("UPDATE ai_asset_versions SET definition_hash='changed' WHERE asset_id
 must_fail("DELETE FROM ai_asset_versions WHERE asset_id=?",(asset,),"immutable_version")
 must_fail("DELETE FROM ai_asset_audit_logs WHERE asset_id=?",(asset,),"immutable_audit")
 must_fail("UPDATE ai_asset_audit_logs SET actor_id=NULL WHERE asset_id=?",(asset,),"immutable_audit")
+must_fail("INSERT INTO ai_asset_versions(id,asset_id,version,definition_json,definition_hash,created_by) VALUES(?,?,2,?,?,?)",(uid(),asset,'{"content":"second"}',"hash-v2",editor),"version_conflict")
+# Distinguish missing optimistic guard from an out-of-sequence version.
+execute("SAVEPOINT no_guard")
+execute("UPDATE ai_assets SET latest_version=2 WHERE id=?",(asset,))
 must_fail("INSERT INTO ai_asset_versions(id,asset_id,version,definition_json,definition_hash,created_by) VALUES(?,?,2,?,?,?)",(uid(),asset,'{"content":"second"}',"hash-v2",editor),"version_guard_required")
+execute("ROLLBACK TO no_guard")
+execute("RELEASE no_guard")
 
 guard=uid()
 execute("INSERT INTO version_write_guards(id,asset_id,expected_latest_version) VALUES(?,?,1)",(guard,asset))
