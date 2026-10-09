@@ -1,0 +1,2307 @@
+openapi: 3.0.3
+info:
+  title: Prompt & Skill Registry API
+  version: 0.2.0
+  description: 'Contrato REST preliminar da versão Cloudflare: browser via Cloudflare Access + app RBAC; integração
+    bearer Registry token com Access Service Auth na borda quando habilitado. Não é token Cloudflare API. Conforme
+    docs/05-auth-and-policy.md.'
+servers:
+- url: http://localhost:5173
+  description: Local Worker dev (exemplo)
+- url: https://registry.example.com
+  description: Placeholder, não é endpoint ativo; proteger com Cloudflare Access
+security:
+- BearerAuth: []
+paths:
+  /v1/prompts:
+    get:
+      operationId: list_prompts
+      summary: Listar prompts
+      tags: &id001
+      - Prompts
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: alias
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: scope
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: owner
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: tag
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_prompt
+      summary: Criar prompt com v1
+      tags: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}:
+    get:
+      operationId: get_prompt
+      summary: Detalhe de prompt
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    patch:
+      operationId: update_prompt_metadata
+      summary: Editar metadata de prompt
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetMetadataPatch'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      operationId: delete_prompt
+      summary: Soft delete de prompt
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/versions:
+    get:
+      operationId: list_prompt_versions
+      summary: Listar snapshots imutáveis
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_prompt_version
+      summary: Criar snapshot imutável
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/versions/{version}:
+    get:
+      operationId: get_prompt_version
+      summary: Obter versão exata
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/diff:
+    get:
+      operationId: get_prompt_diff
+      summary: Comparar duas versões
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/aliases/{alias}:
+    post:
+      operationId: move_prompt_alias
+      summary: Publicar/promover alias com CAS
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: alias
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - staging
+          - production
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AliasMoveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alias'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/rollback:
+    post:
+      operationId: rollback_prompt
+      summary: Rollback de production para versão anterior
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AliasMoveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alias'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/resolve:
+    post:
+      operationId: resolve_prompt
+      summary: Resolver asset por versão ou alias
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolveResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/test-cases:
+    get:
+      operationId: list_prompt_test_cases
+      summary: Listar test cases
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestCase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_prompt_test_case
+      summary: Criar test case
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCaseCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/test-runs:
+    post:
+      operationId: run_prompt_test_case
+      summary: Rodar test case
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestRunRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRun'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/playground:
+    post:
+      operationId: playground_prompt
+      summary: Renderizar/testar manualmente; LLM apenas para Prompt
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaygroundRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/reviews:
+    post:
+      operationId: create_prompt_review
+      summary: Solicitar review
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/prompts/{id_or_name}/reviews/{review_id}/decision:
+    post:
+      operationId: decide_prompt_review
+      summary: Aprovar/rejeitar versão
+      tags: *id001
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: review_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewDecision'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills:
+    get:
+      operationId: list_skills
+      summary: Listar skills
+      tags: &id002
+      - Skills
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: alias
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: scope
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: owner
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: tag
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_skill
+      summary: Criar skill com v1
+      tags: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}:
+    get:
+      operationId: get_skill
+      summary: Detalhe de skill
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    patch:
+      operationId: update_skill_metadata
+      summary: Editar metadata de skill
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetMetadataPatch'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      operationId: delete_skill
+      summary: Soft delete de skill
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/versions:
+    get:
+      operationId: list_skill_versions
+      summary: Listar snapshots imutáveis
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_skill_version
+      summary: Criar snapshot imutável
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/versions/{version}:
+    get:
+      operationId: get_skill_version
+      summary: Obter versão exata
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/diff:
+    get:
+      operationId: get_skill_diff
+      summary: Comparar duas versões
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/aliases/{alias}:
+    post:
+      operationId: move_skill_alias
+      summary: Publicar/promover alias com CAS
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: alias
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - staging
+          - production
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AliasMoveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alias'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/rollback:
+    post:
+      operationId: rollback_skill
+      summary: Rollback de production para versão anterior
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AliasMoveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alias'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/resolve:
+    post:
+      operationId: resolve_skill
+      summary: Resolver asset por versão ou alias
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolveResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/test-cases:
+    get:
+      operationId: list_skill_test_cases
+      summary: Listar test cases
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestCase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_skill_test_case
+      summary: Criar test case
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCaseCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/test-runs:
+    post:
+      operationId: run_skill_test_case
+      summary: Rodar test case
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestRunRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRun'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/playground:
+    post:
+      operationId: playground_skill
+      summary: Renderizar/testar manualmente; LLM apenas para Prompt
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaygroundRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/reviews:
+    post:
+      operationId: create_skill_review
+      summary: Solicitar review
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/reviews/{review_id}/decision:
+    post:
+      operationId: decide_skill_review
+      summary: Aprovar/rejeitar versão
+      tags: *id002
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: review_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewDecision'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/skills/{id_or_name}/files/validate:
+    post:
+      operationId: validate_skill_attachment
+      summary: Validar arquivo textual de Skill antes de salvar versão
+      tags:
+      - Skills
+      parameters:
+      - name: id_or_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillAsset'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                  content_hash:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/audit-logs:
+    get:
+      operationId: list_audit_logs
+      summary: Eventos de auditoria autorizados
+      tags:
+      - Audit
+      parameters:
+      - name: asset_id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/executions:
+    get:
+      operationId: list_executions
+      summary: Traces de execução/resolução
+      tags:
+      - Runtime
+      parameters:
+      - name: asset_id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: report_execution
+      summary: Aplicação reporta execução após resolve
+      tags:
+      - Runtime
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionReport'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Execution'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/webhooks:
+    get:
+      operationId: list_webhooks
+      summary: Lista destinos de webhook
+      tags:
+      - Webhooks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookEndpoint'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    post:
+      operationId: create_webhook
+      summary: Cria destino HTTPS
+      tags:
+      - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEndpointCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpoint'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/webhooks/{id}:
+    patch:
+      operationId: update_webhook
+      summary: Atualiza destino HTTPS
+      tags:
+      - Webhooks
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEndpointCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpoint'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      operationId: disable_webhook
+      summary: Desativa destino HTTPS
+      tags:
+      - Webhooks
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/webhooks/deliveries:
+    get:
+      operationId: list_webhook_deliveries
+      summary: Status das entregas e retries
+      tags:
+      - Webhooks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookDelivery'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/service-tokens:
+    post:
+      operationId: create_service_token
+      summary: Criar token; segredo exibido apenas uma vez
+      tags:
+      - Access
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceTokenRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceTokenCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/service-tokens/{id}/revoke:
+    post:
+      operationId: revoke_service_token
+      summary: Revogar token
+      tags:
+      - Access
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  revoked:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/health:
+    get:
+      operationId: health
+      summary: Liveness sem dados sensíveis
+      tags:
+      - Ops
+      security: []
+      responses:
+        '200':
+          description: ok
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API token or user access token
+  responses:
+    BadRequest:
+      description: Validação/entrada inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Não autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Permissão insuficiente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Recurso ausente ou invisível
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Estado concorrente ou já existe
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    ApiError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+    Asset:
+      type: object
+      required:
+      - id
+      - type
+      - name
+      - title
+      - sharing_scope
+      - status
+      - latest_version
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+          - prompt
+          - skill
+        name:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        sharing_scope:
+          type: string
+          enum:
+          - private
+          - workspace
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+          - deleted
+        latest_version:
+          type: integer
+          minimum: 1
+        owner_user_id:
+          type: string
+          format: uuid
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        aliases:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alias'
+    AssetList:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
+        next_cursor:
+          type: string
+          nullable: true
+    PromptVariable:
+      type: object
+      required:
+      - name
+      - type
+      - required
+      properties:
+        name:
+          type: string
+          pattern: ^[a-zA-Z_][a-zA-Z0-9_]*$
+        type:
+          type: string
+          enum:
+          - string
+          - number
+          - boolean
+        required:
+          type: boolean
+        default:
+          nullable: true
+    PromptDefinition:
+      type: object
+      required:
+      - content
+      - variables
+      properties:
+        content:
+          type: string
+          minLength: 1
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/PromptVariable'
+        output_schema:
+          type: object
+          nullable: true
+          additionalProperties: true
+        model_config:
+          type: object
+          additionalProperties: true
+        guardrails:
+          type: array
+          items: {}
+        examples:
+          type: array
+          items: {}
+    SkillAsset:
+      type: object
+      required:
+      - text_content
+      - is_executable
+      properties:
+        text_content:
+          type: string
+          maxLength: 1048576
+        is_executable:
+          type: boolean
+          enum:
+          - false
+        content_hash:
+          type: string
+          description: sha256 do text_content, calculado no servidor
+    SkillDefinition:
+      type: object
+      required:
+      - description
+      - body
+      properties:
+        description:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        assets:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SkillAsset'
+          maxProperties: 10
+        allowed_tools:
+          type: array
+          items:
+            type: string
+        input_contract:
+          type: object
+          additionalProperties: true
+        output_contract:
+          type: object
+          additionalProperties: true
+        guardrails:
+          type: array
+          items: {}
+    Definition:
+      oneOf:
+      - $ref: '#/components/schemas/PromptDefinition'
+      - $ref: '#/components/schemas/SkillDefinition'
+    AssetCreate:
+      type: object
+      required:
+      - name
+      - title
+      - sharing_scope
+      - definition
+      properties:
+        name:
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        sharing_scope:
+          type: string
+          enum:
+          - private
+          - workspace
+        tags:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+        definition:
+          $ref: '#/components/schemas/Definition'
+    AssetMetadataPatch:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        sharing_scope:
+          type: string
+          enum:
+          - private
+          - workspace
+        owner_user_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+          - deleted
+    Version:
+      type: object
+      required:
+      - asset_id
+      - version
+      - definition_hash
+      - definition
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        definition_hash:
+          type: string
+        definition:
+          $ref: '#/components/schemas/Definition'
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    VersionCreate:
+      type: object
+      required:
+      - definition
+      - notes
+      - expected_latest_version
+      properties:
+        definition:
+          $ref: '#/components/schemas/Definition'
+        notes:
+          type: string
+          minLength: 1
+        expected_latest_version:
+          type: integer
+          minimum: 1
+    VersionCreated:
+      type: object
+      required:
+      - asset_id
+      - version
+      - deduplicated
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        definition_hash:
+          type: string
+        deduplicated:
+          type: boolean
+    VersionList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Version'
+    AliasMoveRequest:
+      type: object
+      required:
+      - version
+      - expected_current_version
+      - reason
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        expected_current_version:
+          type: integer
+          nullable: true
+        reason:
+          type: string
+          minLength: 1
+        emergency:
+          type: boolean
+          default: false
+    Alias:
+      type: object
+      required:
+      - alias
+      - version
+      - revision
+      properties:
+        alias:
+          type: string
+          enum:
+          - staging
+          - production
+        version:
+          type: integer
+          minimum: 1
+        previous_version:
+          type: integer
+          nullable: true
+        revision:
+          type: integer
+        moved_at:
+          type: string
+          format: date-time
+    DiffResult:
+      type: object
+      properties:
+        from_version:
+          type: integer
+        to_version:
+          type: integer
+        text_diff:
+          type: string
+        structural_diff:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    ResolveRef:
+      oneOf:
+      - type: object
+        required:
+        - version
+        properties:
+          version:
+            type: integer
+            minimum: 1
+      - type: object
+        required:
+        - alias
+        properties:
+          alias:
+            type: string
+            enum:
+            - staging
+            - production
+    ResolveRequest:
+      type: object
+      required:
+      - ref
+      properties:
+        ref:
+          $ref: '#/components/schemas/ResolveRef'
+        variables:
+          type: object
+          additionalProperties: true
+        caller_app:
+          type: string
+        environment:
+          type: string
+    ResolveResult:
+      type: object
+      required:
+      - asset_id
+      - resolved_version
+      - definition_hash
+      - trace_id
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - prompt
+          - skill
+        requested_ref:
+          type: string
+        resolved_version:
+          type: integer
+        definition_hash:
+          type: string
+        rendered_content:
+          type: string
+          description: Prompt somente
+        definition:
+          $ref: '#/components/schemas/SkillDefinition'
+        trace_id:
+          type: string
+          format: uuid
+    TestCaseCreate:
+      type: object
+      required:
+      - name
+      - input
+      - evaluator_config
+      properties:
+        name:
+          type: string
+        input:
+          type: object
+          additionalProperties: true
+        expected_output:
+          nullable: true
+        evaluator_config:
+          type: object
+          additionalProperties: true
+        required_for_production:
+          type: boolean
+    TestCase:
+      allOf:
+      - $ref: '#/components/schemas/TestCaseCreate'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          case_revision:
+            type: integer
+    TestRunRequest:
+      type: object
+      required:
+      - version
+      - test_case_id
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        test_case_id:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum:
+          - preview
+          - llm
+          - contract
+          - manual
+    TestRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - passed
+          - failed
+          - error
+          - not_evaluated
+        latency_ms:
+          type: integer
+        model:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    PlaygroundRequest:
+      type: object
+      required:
+      - version
+      - variables
+      - mode
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        variables:
+          type: object
+          additionalProperties: true
+        mode:
+          type: string
+          enum:
+          - preview
+          - llm
+          - contract
+    PlaygroundResult:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        resolved_version:
+          type: integer
+        mode:
+          type: string
+        rendered_content:
+          type: string
+        status:
+          type: string
+        model:
+          type: string
+        output:
+          type: string
+          description: Somente resposta transitória; não armazenar por padrão
+    ReviewRequest:
+      type: object
+      required:
+      - version
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        comment:
+          type: string
+    ReviewDecision:
+      type: object
+      required:
+      - decision
+      properties:
+        decision:
+          type: string
+          enum:
+          - approved
+          - rejected
+          - changes_requested
+        comment:
+          type: string
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        status:
+          type: string
+        reviewed_by:
+          type: string
+          format: uuid
+    AuditList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        next_cursor:
+          type: string
+          nullable: true
+    ExecutionReport:
+      type: object
+      required:
+      - resolution_trace_id
+      - status
+      properties:
+        resolution_trace_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - success
+          - failure
+        model:
+          type: string
+        latency_ms:
+          type: integer
+        input_hash:
+          type: string
+        output_hash:
+          type: string
+        cost_usd:
+          type: number
+    Execution:
+      type: object
+      additionalProperties: true
+    ExecutionList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Execution'
+        next_cursor:
+          type: string
+          nullable: true
+    WebhookEndpointCreate:
+      type: object
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+    WebhookEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+        enabled:
+          type: boolean
+        events:
+          type: array
+          items:
+            type: string
+    WebhookDelivery:
+      type: object
+      additionalProperties: true
+    ServiceTokenRequest:
+      type: object
+      required:
+      - name
+      - scopes
+      properties:
+        name:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+            enum:
+            - resolve
+            - executions:create
+    ServiceTokenCreated:
+      type: object
+      required:
+      - id
+      - token
+      properties:
+        id:
+          type: string
+          format: uuid
+        token:
+          type: string
+          description: Segredo retornado uma única vez
+x-cloudflare-access: O perímetro exige Cloudflare Access para usuários, e Access Service Auth para consumidores
+  quando configurado. A API faz authorization por workspace/Registry service tokens.
