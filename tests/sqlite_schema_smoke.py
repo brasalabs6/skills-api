@@ -52,6 +52,12 @@ assert execute("SELECT version FROM ai_asset_aliases WHERE asset_id=? AND alias=
 assert execute("SELECT COUNT(*) FROM ai_asset_audit_logs WHERE asset_id=?",(asset,)).fetchone()[0]>=4
 assert execute("SELECT COUNT(*) FROM event_outbox WHERE event_type='asset.rollback'").fetchone()[0]==1
 
+# Latest test execution wins even if timestamps are identical (SQLite CURRENT_TIMESTAMP precision).
+case=uid()
+execute("INSERT INTO ai_asset_test_cases(id,asset_id,name,required_for_production,created_by) VALUES(?,?,'quality',1,?)",(case,asset,editor))
+execute("INSERT INTO ai_asset_test_runs(id,asset_id,version,test_case_id,case_revision,status) VALUES(?,?,2,?,1,'passed')",(uid(),asset,case))
+execute("INSERT INTO ai_asset_test_runs(id,asset_id,version,test_case_id,case_revision,status) VALUES(?,?,2,?,1,'failed')",(uid(),asset,case))
+must_fail("UPDATE ai_asset_aliases SET version=2,revision=3,reason='retry',action='publish' WHERE asset_id=? AND alias='production'",(asset,),"test_required")
 execute("UPDATE ai_assets SET status='archived' WHERE id=?",(asset,))
 must_fail("UPDATE ai_asset_aliases SET version=2,revision=3,reason='restore',action='publish' WHERE asset_id=? AND alias='production'",(asset,),"permission_denied")
 print("PASS: D1 schema, version immutability, CAS guards, RBAC, publish/rollback, audit and outbox")
