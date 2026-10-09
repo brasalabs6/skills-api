@@ -22,7 +22,7 @@ execute("INSERT INTO workspaces(id,organization_id,name) VALUES(?,?,?)",(ws,org,
 for user,role in [(editor,"editor"),(publisher,"publisher")]:
     execute("INSERT INTO users(id,access_subject,email) VALUES(?,?,?)",(user,user,user+"@example.test"))
     execute("INSERT INTO workspace_members(workspace_id,user_id,role) VALUES(?,?,?)",(ws,user,role))
-execute("INSERT INTO ai_assets(id,workspace_id,type,name,title,owner_user_id,sharing_scope,created_by) VALUES(?,?,'prompt','first','First',?,'workspace',?)",(asset,editor,editor))
+execute("INSERT INTO ai_assets(id,workspace_id,type,name,title,owner_user_id,sharing_scope,created_by) VALUES(?,?,'prompt','first','First',?,'workspace',?)",(asset,ws,editor,editor))
 execute("INSERT INTO ai_asset_versions(id,asset_id,version,definition_json,definition_hash,created_by) VALUES(?,?,1,?,?,?)",(uid(),asset,'{"content":"first"}',"hash-v1",editor))
 
 must_fail("UPDATE ai_asset_versions SET definition_hash='changed' WHERE asset_id=?",(asset,),"immutable_version")

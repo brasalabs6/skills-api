@@ -30,7 +30,7 @@ function App(){
  }
  async function reload(it:Item){await load();await open(it);}
  async function run(fn:()=>Promise<void>){setBusy(true);setMessage("");try{await fn()}catch(e:any){setMessage(e.message??String(e))}finally{setBusy(false)}}
- function newAsset(){setForm(JSON.parse(JSON.stringify(payload[kind])));setMode("new");setResult(null)}
+ function newAsset(){setForm(JSON.parse(JSON.stringify(payload[kind])));setEdit(JSON.stringify(payload[kind].definition,null,2));setMode("new");setResult(null)}
  function editor(value:string,callback:(x:string)=>void,rows=16){return <textarea spellCheck={false} rows={rows} value={value} onChange={e=>callback(e.target.value)}/>;}
  const editorAllowed=person?.principal?.kind==="human"&&["editor","publisher","admin"].includes(person.principal.role);
  const publishAllowed=person?.principal?.kind==="human"&&["publisher","admin"].includes(person.principal.role);
@@ -52,7 +52,7 @@ function App(){
     <div className="panel"><div className="grid"><label>Name / slug<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="example-name"/></label><label>Title<input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Display name"/></label></div>
     <label>Sharing<select value={form.sharing_scope} onChange={e=>setForm({...form,sharing_scope:e.target.value})}><option value="private">Private</option><option value="workspace">Workspace</option></select></label>
     <label>Description<input value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label>
-    <label>Version 1 definition (JSON)</label>{editor(JSON.stringify(form.definition,null,2),v=>{try{setForm({...form,definition:JSON.parse(v)})}catch{setEdit(v)}},1)}
+    <label>Version 1 definition (JSON)</label>
     <textarea rows={13} spellCheck={false} value={edit||JSON.stringify(form.definition,null,2)} onChange={e=>setEdit(e.target.value)}/>
     <div className="actions"><button className="primary" disabled={busy} onClick={()=>run(async()=>{const data={...form,definition:JSON.parse(edit||JSON.stringify(form.definition))};await api("/v1/"+kind,{method:"POST",body:JSON.stringify(data)});setMode("catalog");setEdit("");await load();setMessage("Created successfully.")})}>Create version 1</button></div></div>
   </>}
