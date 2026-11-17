@@ -1,0 +1,26 @@
+{
+  "name": "contract-risk-review",
+  "title": "Checklist de riscos contratuais",
+  "description": "Exemplo de Skill não executável.",
+  "sharing_scope": "private",
+  "tags": [
+    "example",
+    "review"
+  ],
+  "notes": "v1 ilustrativa sem contrato de verdade.",
+  "definition": {
+    "description": "Use para organizar uma revisão de cláusulas de renovação, rescisão e responsabilidade.",
+    "body": "Leia o contrato. Use checklist.md. Liste apenas informações explicitamente presentes. Não invente cláusulas ausentes.",
+    "assets": {
+      "checklist.md": {
+        "text_content": "- Renovação\n- Rescisão\n- Limite de responsabilidade",
+        "is_executable": false,
+        "content_hash": "c5c278d2fcd9a05fb211a885ffa14da582367758e47560c9db6fff91d1d920e1"
+      }
+    },
+    "allowed_tools": [],
+    "input_contract": {},
+    "output_contract": {},
+    "guardrails": []
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "support-answer-style",
+  "title": "Resposta de suporte",
+  "description": "Prompt de exemplo, sem dados de clientes reais.",
+  "sharing_scope": "private",
+  "tags": ["example", "support"],
+  "notes": "Versão inicial demonstrativa.",
+  "definition": {
+    "content": "Responda a {{customer_name}} sobre {{issue}} de forma clara e curta.",
+    "variables": [
+      {"name": "customer_name", "type": "string", "required": true},
+      {"name": "issue", "type": "string", "required": true}
+    ],
+    "output_schema": null,
+    "model_config": {"model": "default-fast", "temperature": 0.2},
+    "guardrails": [],
+    "examples": []
+  }
+}
